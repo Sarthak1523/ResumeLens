@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Auction System - Microservices Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-card: rgba(255, 255, 255, 0.1);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        .brand h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .service-badges {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-card);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #64748b;
+        }
+
+        .dot.online {
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .dot.offline {
+            background-color: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-card);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auctions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .auction-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-card);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .auction-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+        }
+
+        .auction-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.25rem;
+            font-weight: 700;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+        }
+
+        .auction-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .auction-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .price-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--border-card);
+        }
+
+        .price-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .price-val {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #34d399;
+        }
+
+        .bid-button {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .bid-button:hover {
+            background: var(--primary-hover);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-card);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .status-ACCEPTED {
+            color: #34d399;
+            font-weight: 700;
+        }
+
+        .status-REJECTED {
+            color: #f87171;
+            font-weight: 700;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .link-btn {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-card);
+            color: #a5b4fc;
+            text-decoration: none;
+            border-radius: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .link-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: #1e293b;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+            border-left: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>Online Auction System</h1>
+            <p>Placement & Interview Microservices Architecture Dashboard</p>
+        </div>
+        <div class="service-badges">
+            <div class="badge">
+                <span id="auction-service-dot" class="dot"></span>
+                <span>auction-service (:8081)</span>
+            </div>
+            <div class="badge">
+                <span id="bidding-service-dot" class="dot"></span>
+                <span>bidding-service (:8082)</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid-container">
+        <!-- Main Column: Active Auctions & Bidding -->
+        <div>
+            <div class="glass-card">
+                <div class="section-title">
+                    <span>Live Active Auctions</span>
+                    <button onclick="loadAuctions()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+                <div id="auctions-container" class="auctions-grid">
+                    <p style="color: var(--text-muted);">Loading active items from Microservice 1 (Port 8081)...</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-title">
+                    <span>Bid Audit Trail (bidding-service :8082)</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Auction ID</th>
+                            <th>Bidder</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bids-table-body">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No bids recorded yet. Place a bid above!</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sidebar: Create Auction & Quick Actions -->
+        <div>
+            <div class="glass-card">
+                <div class="section-title">➕ Create New Auction Item</div>
+                <form id="createAuctionForm">
+                    <div class="form-group">
+                        <label>Item Title</label>
+                        <input type="text" id="itemTitle" class="form-control" placeholder="e.g. Sony PlayStation 5 Pro" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="itemDesc" class="form-control" rows="2" placeholder="Brief description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Starting Price ($)</label>
+                        <input type="number" id="startingPrice" class="form-control" placeholder="100.00" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Seller Name</label>
+                        <input type="text" id="sellerName" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+                    <button type="submit" class="btn-submit">List Auction Item</button>
+                </form>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-title">🚀 Interview Swagger & API Links</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Test raw JSON payloads & swagger documentation live during interviews:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <a href="http://localhost:8081/swagger-ui.html" target="_blank" class="link-btn">📖 Service 1 Swagger (Port 8081)</a>
+                    <a href="http://localhost:8082/swagger-ui.html" target="_blank" class="link-btn">📖 Service 2 Swagger (Port 8082)</a>
+                    <a href="http://localhost:8081/h2-console" target="_blank" class="link-btn">🗄️ Auction H2 DB (JDBC: jdbc:h2:mem:auctiondb)</a>
+                    <a href="http://localhost:8082/h2-console" target="_blank" class="link-btn">🗄️ Bidding H2 DB (JDBC: jdbc:h2:mem:biddb)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Place Bid Modal Prompt -->
+    <div id="toast">Notification</div>
+
+    <script>
+        const AUCTION_URL = 'http://localhost:8081/api/auctions';
+        const BIDDING_URL = 'http://localhost:8082/api/bids';
+
+        async function checkHealth() {
+            try {
+                const res1 = await fetch(AUCTION_URL);
+                document.getElementById('auction-service-dot').className = res1.ok ? 'dot online' : 'dot offline';
+            } catch (e) {
+                document.getElementById('auction-service-dot').className = 'dot offline';
+            }
+
+            try {
+                const res2 = await fetch(BIDDING_URL);
+                document.getElementById('bidding-service-dot').className = res2.ok ? 'dot online' : 'dot offline';
+            } catch (e) {
+                document.getElementById('bidding-service-dot').className = 'dot offline';
+            }
+        }
+
+        async function loadAuctions() {
+            checkHealth();
+            const container = document.getElementById('auctions-container');
+            try {
+                const res = await fetch(AUCTION_URL);
+                if (!res.ok) throw new Error('Service response not ok');
+                const items = await res.json();
+                
+                if (items.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted);">No auction items available.</p>';
+                    return;
+                }
+
+                container.innerHTML = items.map(item => `
+                    <div class="auction-card">
+                        <span class="auction-tag">${item.status}</span>
+                        <div class="auction-title">#${item.id} - ${escapeHtml(item.title)}</div>
+                        <div class="auction-desc">${escapeHtml(item.description || 'No description provided.')}</div>
+                        <div class="price-box">
+                            <div>
+                                <div class="price-label">Highest Bidder</div>
+                                <div style="font-weight: 600; font-size: 0.85rem;">${escapeHtml(item.highestBidderName || 'None')}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price-label">Current High Bid</div>
+                                <div class="price-val">$${parseFloat(item.currentHighestBid).toFixed(2)}</div>
+                            </div>
+                        </div>
+                        ${item.status === 'ACTIVE' ? `
+                            <button class="bid-button" onclick="promptPlaceBid(${item.id}, ${item.currentHighestBid})">⚡ Place Bid</button>
+                        ` : `
+                            <button class="bid-button" disabled style="opacity: 0.5; cursor: not-allowed;">Auction Ended</button>
+                        `}
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `
+                    <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 0.5rem; color: #fca5a5;">
+                        ❌ Could not connect to <b>auction-service</b> on <b>http://localhost:8081</b>.<br>
+                        Make sure Microservice 1 is running!
+                    </div>`;
+            }
+        }
+
+        async function loadBids() {
+            const tableBody = document.getElementById('bids-table-body');
+            try {
+                const res = await fetch(BIDDING_URL);
+                if (!res.ok) return;
+                const bids = await res.json();
+
+                if (bids.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No bids recorded yet.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = bids.slice().reverse().map(bid => `
+                    <tr>
+                        <td>#${bid.id}</td>
+                        <td>Auction #${bid.auctionId}</td>
+                        <td><b>${escapeHtml(bid.bidderName)}</b></td>
+                        <td style="color: #34d399; font-weight: 700;">$${parseFloat(bid.amount).toFixed(2)}</td>
+                        <td class="status-${bid.status}">${bid.status}</td>
+                        <td style="color: var(--text-muted);">${new Date(bid.timestamp).toLocaleTimeString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error("Error loading bids", e);
+            }
+        }
+
+        async function promptPlaceBid(auctionId, currentPrice) {
+            const bidderName = prompt("Enter your Name/Email:", "Jane Doe");
+            if (!bidderName) return;
+
+            const minSuggested = (parseFloat(currentPrice) + 50.0).toFixed(2);
+            const amountStr = prompt(`Enter Bid Amount (Must be > $${currentPrice}):`, minSuggested);
+            if (!amountStr) return;
+
+            const amount = parseFloat(amountStr);
+            if (isNaN(amount)) {
+                showToast("Invalid number format!", "danger");
+                return;
+            }
+
+            try {
+                const response = await fetch(BIDDING_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        auctionId: auctionId,
+                        bidderName: bidderName,
+                        bidderEmail: bidderName.includes('@') ? bidderName : bidderName.toLowerCase().replace(/\s+/g, '') + '@example.com',
+                        amount: amount
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(`✅ Bid of $${amount.toFixed(2)} ACCEPTED! Highest bid updated.`, "success");
+                    loadAuctions();
+                    loadBids();
+                } else {
+                    showToast(`❌ Bid Rejected: ${data.message || 'Validation failed'}`, "danger");
+                    loadBids();
+                }
+            } catch (err) {
+                showToast(`❌ Failed to connect to bidding-service (:8082)`, "danger");
+            }
+        }
+
+        document.getElementById('createAuctionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('itemTitle').value;
+            const description = document.getElementById('itemDesc').value;
+            const startingPrice = parseFloat(document.getElementById('startingPrice').value);
+            const sellerName = document.getElementById('sellerName').value;
+
+            try {
+                const res = await fetch(AUCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        startingPrice: startingPrice,
+                        sellerName: sellerName,
+                        durationInMinutes: 120
+                    })
+                });
+
+                if (res.ok) {
+                    showToast("🎉 New Auction Item Listed Successfully!", "success");
+                    document.getElementById('createAuctionForm').reset();
+                    loadAuctions();
+                } else {
+                    const err = await res.json();
+                    showToast("❌ Failed to create item: " + (err.message || "Error"), "danger");
+                }
+            } catch (e) {
+                showToast("❌ Could not connect to auction-service (:8081)", "danger");
+            }
+        });
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            toast.style.borderLeftColor = type === 'success' ? '#34d399' : '#ef4444';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        // Initial Load
+        loadAuctions();
+        loadBids();
+        setInterval(() => { loadAuctions(); loadBids(); }, 5000);
+    </script>
+</body>
+</html>
